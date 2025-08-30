@@ -1,26 +1,34 @@
 BUILD_DIR := ./build
-SRC_DIRS := ./src
+SRC_DIR := ./src
+TB_DIR := ./tb
 
-SRCS = $(shell find $(SRC_DIRS) -name '*.v')
-OUT = $(BUILD_DIR)/verilog_test
-VCD = $(BUILD_DIR)/dump.vcd
+SRCS = $(shell find $(SRC_DIR) -name '*.v')
+TBS = $(shell find $(TB_DIR) -name '*.v')
 
-all: $(VCD)
+TARGETS := $(patsubst $(TB_DIR)/%.v,$(BUILD_DIR)/%,$(TBS))
 
-$(OUT): $(SRCS)
+$(BUILD_DIR)/%: $(TB_DIR)/%.v
 	mkdir -p $(dir $@)
-	iverilog -D 'DUMP_FILE="$(VCD)"' -o $(OUT) $^
+	iverilog -o $@ $< $(SRCS) 
 
-$(VCD): $(OUT)
-	vvp $<
-
-wave: $(VCD)
-	gtkwave $<
+all: $(TARGETS)
 
 clean:
 	rm -rf $(BUILD_DIR)
 
-run: $(OUT)
+run: $(BUILD_DIR)/$(TB)
+	@if [ -z "$(TB)" ]; then \
+	    echo "Usage: make run TB=<testbench_name>"; \
+	    exit 1; \
+	fi
 	vvp $<
+
+wave: $(BUILD_DIR)/$(TB)
+	@if [ -z "$(TB)" ]; then \
+	    echo "Usage: make wave TB=<testbench_name>"; \
+	    exit 1; \
+	fi
+	vvp $<
+	gtkwave dump.vcd &
 
 .PHONY: clean run wave
