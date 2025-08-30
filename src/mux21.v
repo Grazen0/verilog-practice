@@ -1,8 +1,8 @@
 module mux21 (
-    output f,
     input  a,
     input  b,
-    input  sel
+    input  sel,
+    output f
 );
   assign f = (a & ~sel) | (b & sel);
 endmodule

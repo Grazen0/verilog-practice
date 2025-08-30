@@ -6,12 +6,12 @@ module mux41_tb ();
   wire f;
 
   mux41 m1 (
-      .f  (f),
       .a  (a),
       .b  (b),
       .c  (c),
       .d  (d),
-      .sel(sel)
+      .sel(sel),
+      .f  (f)
   );
 
   always #1 a = ~a;

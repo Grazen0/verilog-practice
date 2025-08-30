@@ -4,10 +4,10 @@ module mux21_tb ();
   reg a, b, sel;
   wire f;
   mux21 m1 (
-      .f  (f),
       .a  (a),
       .b  (b),
-      .sel(sel)
+      .sel(sel),
+      .f  (f)
   );
 
   always #1 a = !a;
