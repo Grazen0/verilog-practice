@@ -7,7 +7,7 @@ TBS = $(shell find $(TB_DIR) -name '*.v')
 
 TARGETS := $(patsubst $(TB_DIR)/%.v,$(BUILD_DIR)/%,$(TBS))
 
-$(BUILD_DIR)/%: $(TB_DIR)/%.v
+$(BUILD_DIR)/%: $(TB_DIR)/%.v $(SRCS)
 	mkdir -p $(dir $@)
 	iverilog -o $@ $< $(SRCS) 
 
@@ -29,6 +29,6 @@ wave: $(BUILD_DIR)/$(TB)
 	    exit 1; \
 	fi
 	vvp $<
-	gtkwave dump.vcd &
+	gtkwave dump.vcd
 
 .PHONY: clean run wave
