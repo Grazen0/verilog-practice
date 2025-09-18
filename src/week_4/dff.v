@@ -6,6 +6,8 @@ module d_ff (
     output reg q,
     output nq
 );
+  initial q <= 0;
+
   always @(posedge clk, negedge reset)
     if (reset == 0) q <= 0;
     else if (enable == 1) q <= d;

@@ -1,21 +1,21 @@
 `timescale 1ns / 1ps
 
-module jk_ff_tb ();
-  reg clk, j, k;
-  wire q, nq;
+module jkff_tb ();
+  reg clk, rst, j, k;
+  wire q;
 
-  jk_ff jk (
+  jkff jk (
       .clk(clk),
+      .rst(rst),
       .j  (j),
       .k  (k),
-      .q  (q),
-      .nq (nq)
+      .q  (q)
   );
 
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, jk_ff_tb);
+    $dumpvars(0, jkff_tb);
 
     clk = 0;
     j   = 0;
@@ -26,8 +26,12 @@ module jk_ff_tb ();
     #10 j = 0;
     k = 1;
 
-    #10 j = 1;
+    #10 j = 0;
+    k = 0;
 
-    #20 $finish();
+    #20 j = 1;
+    k = 1;
+
+    #40 $finish();
   end
 endmodule

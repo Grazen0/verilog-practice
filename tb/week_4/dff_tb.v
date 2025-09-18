@@ -1,10 +1,10 @@
 `timescale 1ns / 1ps
 
-module d_ff_tb ();
+module dff_tb ();
   reg clk, reset, enable, d;
   wire q, nq;
 
-  d_ff dff (
+  dff dff (
       .clk(clk),
       .reset(reset),
       .enable(enable),
@@ -16,7 +16,7 @@ module d_ff_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, d_ff_tb);
+    $dumpvars(0, dff_tb);
 
     clk = 1;
     d = 0;
