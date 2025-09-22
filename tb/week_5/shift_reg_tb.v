@@ -14,7 +14,7 @@ module shift_reg_tb ();
   always #10 clk = ~clk;
 
   initial begin
-    $dumpvars(0, shift_reg_tb);
+    $dumpvars();
 
     clk = 0;
     load = 1;

@@ -15,7 +15,7 @@ module jkff_counter_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, jkff_counter_tb);
+    $dumpvars();
 
     clk = 0;
     rst = 1;

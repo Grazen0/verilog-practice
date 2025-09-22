@@ -20,7 +20,7 @@ module mux41_tb ();
   always #1 d = ~d;
 
   initial begin
-    $dumpvars(0, mux41_tb);
+    $dumpvars();
 
     a   = 0;
     b   = 0;

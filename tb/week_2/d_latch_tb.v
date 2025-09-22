@@ -12,7 +12,7 @@ module d_latch_tb ();
   );
 
   initial begin
-    $dumpvars(0, d_latch_tb);
+    $dumpvars();
 
     d  = 0;
     we = 0;

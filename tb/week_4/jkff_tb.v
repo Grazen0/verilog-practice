@@ -15,7 +15,7 @@ module jkff_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, jkff_tb);
+    $dumpvars();
 
     clk = 0;
     j   = 0;

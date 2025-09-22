@@ -15,7 +15,7 @@ module subtractor_tb ();
   always #4 b_in = ~b_in;
 
   initial begin
-    $dumpvars(0, subtractor_tb);
+    $dumpvars();
 
     a = 0;
     b = 0;

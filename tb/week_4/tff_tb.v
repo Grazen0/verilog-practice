@@ -14,7 +14,7 @@ module tff_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, tff_tb);
+    $dumpvars();
 
     clk = 0;
     rst = 0;

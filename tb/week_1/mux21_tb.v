@@ -15,7 +15,7 @@ module mux21_tb ();
   always #3 sel = !sel;
 
   initial begin
-    $dumpvars(0, mux21_tb);
+    $dumpvars();
 
     a   = 0;
     b   = 0;

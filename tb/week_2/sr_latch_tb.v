@@ -14,7 +14,7 @@ module sr_latch_tb ();
   );
 
   initial begin
-    $dumpvars(0, sr_latch_tb);
+    $dumpvars();
 
     set   = 0;
     reset = 0;
