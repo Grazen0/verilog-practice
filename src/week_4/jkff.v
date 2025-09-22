@@ -5,8 +5,8 @@ module jkff (
     input k,
     output reg q
 );
-  always @(posedge clk)
-    if (rst == 1) q <= 0;
+  always @(posedge clk, negedge rst)
+    if (~rst) q <= 0;
     else
       case ({
         j, k

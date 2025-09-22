@@ -1,7 +1,11 @@
 module tff (
     input clk,
+    input rst,
     input t,
     output reg q
 );
-  always @(posedge clk) if (t == 1) q = ~q;
+  always @(posedge clk, negedge rst)
+    if (~rst) q <= 0;
+    else if (t == 1) q <= ~q;
+    else q <= q;
 endmodule

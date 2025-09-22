@@ -1,16 +1,10 @@
-module d_ff (
+module dff (
     input clk,
-    input reset,
+    input rst,
     input d,
-    input enable,
-    output reg q,
-    output nq
+    output reg q
 );
-  initial q <= 0;
-
-  always @(posedge clk, negedge reset)
-    if (reset == 0) q <= 0;
-    else if (enable == 1) q <= d;
-
-  assign nq = ~q;
+  always @(posedge clk, negedge rst)
+    if (~rst) q <= 0;
+    else q <= d;
 endmodule
