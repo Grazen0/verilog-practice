@@ -1,12 +1,12 @@
 module jkff (
-    input clk,
-    input rst,
-    input j,
-    input k,
-    output reg q
+    input  wire clk,
+    input  wire rst_n,
+    input  wire j,
+    input  wire k,
+    output reg  q
 );
-  always @(posedge clk, negedge rst)
-    if (~rst) q <= 0;
+  always @(posedge clk, negedge rst_n)
+    if (~rst_n) q <= 0;
     else
       case ({
         j, k

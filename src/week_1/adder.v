@@ -1,9 +1,9 @@
 module adder (
-    input  a,
-    input  b,
-    input  c_in,
-    output s,
-    output c_out
+    input  wire a,
+    input  wire b,
+    input  wire c_in,
+    output wire s,
+    output wire c_out
 );
   assign s = a ^ b ^ c_in;
   assign c_out = (a & b) | (a & c_in) | (b & c_in);

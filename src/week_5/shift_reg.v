@@ -1,10 +1,10 @@
 module dff_async (
-    input clk,
-    input load,
-    input pause,
-    input p_data,
-    input s_data,
-    output reg q
+    input  wire clk,
+    input  wire load,
+    input  wire pause,
+    input  wire p_data,
+    input  wire s_data,
+    output reg  q
 );
   always @(posedge clk or negedge load)
     if (load == 0) q <= p_data;

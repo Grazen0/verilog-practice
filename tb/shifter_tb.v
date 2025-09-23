@@ -4,11 +4,11 @@ module shifter_tb ();
   wire [7:0] out;
 
   shifter s1 (
-      .clk (clk),
-      .rst (rst),
-      .load(load),
-      .data(data),
-      .out (out)
+      .clk  (clk),
+      .rst_n(rst),
+      .load (load),
+      .data (data),
+      .out  (out)
   );
 
   always #5 clk = ~clk;

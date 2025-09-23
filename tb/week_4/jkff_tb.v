@@ -1,15 +1,15 @@
 `timescale 1ns / 1ps
 
 module jkff_tb ();
-  reg clk, rst, j, k;
+  reg clk, rst_n, j, k;
   wire q;
 
   jkff jk (
       .clk(clk),
-      .rst(rst),
-      .j  (j),
-      .k  (k),
-      .q  (q)
+      .rst_n(rst_n),
+      .j(j),
+      .k(k),
+      .q(q)
   );
 
   always #5 clk = ~clk;

@@ -1,14 +1,14 @@
 module snail (
-    input  clk,
-    input  rst,
-    input  d,
-    output q
+    input  wire clk,
+    input  wire rst,
+    input  wire d,
+    output wire q
 );
-  parameter S0 = 3'b000;
-  parameter S1 = 3'b001;
-  parameter S2 = 3'b010;
-  parameter S3 = 3'b011;
-  parameter S4 = 3'b100;
+  localparam S0 = 3'b000;
+  localparam S1 = 3'b001;
+  localparam S2 = 3'b010;
+  localparam S3 = 3'b011;
+  localparam S4 = 3'b100;
 
   reg [2:0] state, next_state;
 

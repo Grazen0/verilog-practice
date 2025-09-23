@@ -1,10 +1,10 @@
 module mux41 (
-    input a,
-    input b,
-    input c,
-    input d,
-    input [1:0] sel,
-    output f
+    input wire a,
+    input wire b,
+    input wire c,
+    input wire d,
+    input wire [1:0] sel,
+    output wire f
 );
   wire w1, w2;
 

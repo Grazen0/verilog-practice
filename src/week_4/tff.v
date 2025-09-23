@@ -1,8 +1,8 @@
 module tff (
-    input clk,
-    input rst,
-    input t,
-    output reg q
+    input  wire clk,
+    input  wire rst,
+    input  wire t,
+    output reg  q
 );
   always @(posedge clk, negedge rst)
     if (~rst) q <= 0;

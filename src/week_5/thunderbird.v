@@ -1,24 +1,24 @@
 module thunderbird (
-    input  clk,
-    input  rst,
-    input  left,
-    input  right,
-    output l0,
-    output l1,
-    output l2,
-    output r0,
-    output r1,
-    output r2
+    input  wire clk,
+    input  wire rst,
+    input  wire left,
+    input  wire right,
+    output wire l0,
+    output wire l1,
+    output wire l2,
+    output wire r0,
+    output wire r1,
+    output wire r2
 );
   reg [2:0] state, next_state;
 
-  parameter S000_000 = 3'b000;
-  parameter S000_100 = 3'b001;
-  parameter S000_110 = 3'b010;
-  parameter S000_111 = 3'b011;
-  parameter S001_000 = 3'b100;
-  parameter S011_000 = 3'b101;
-  parameter S111_000 = 3'b110;
+  localparam S000_000 = 3'b000;
+  localparam S000_100 = 3'b001;
+  localparam S000_110 = 3'b010;
+  localparam S000_111 = 3'b011;
+  localparam S001_000 = 3'b100;
+  localparam S011_000 = 3'b101;
+  localparam S111_000 = 3'b110;
 
   always @(posedge clk, posedge rst)
     if (rst) state <= S000_000;
