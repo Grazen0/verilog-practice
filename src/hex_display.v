@@ -36,25 +36,15 @@ module h_fsm (
     if (!rst_n) state <= 2'b00;
     else state <= state + 1;
 
-  always @(state)
-    case (state)
-      2'b00: begin
-        digit <= data[3:0];
-        anode <= 4'b1110;
-      end
-      2'b01: begin
-        digit <= data[7:4];
-        anode <= 4'b1101;
-      end
-      2'b10: begin
-        digit <= data[11:8];
-        anode <= 4'b1011;
-      end
-      2'b11: begin
-        digit <= data[15:12];
-        anode <= 4'b0111;
-      end
-    endcase
+  always @(*) begin
+    digit = data[(state*4)+:4];
+
+    if (digit != 0) begin
+      anode = ~(4'b0001 << state);
+    end else begin
+      anode = 4'b1111;
+    end
+  end
 endmodule
 
 module hex_display (

@@ -19,7 +19,7 @@ module hex_display_tb ();
 
     clk   = 1;
     rst_n = 1;
-    data  = 16'hBF47;
+    data  = 16'h0F47;
 
     #1 rst_n = 0;
     #1 rst_n = 1;
