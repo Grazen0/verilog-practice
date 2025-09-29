@@ -4,5 +4,5 @@ module mux21 (
     input  wire sel,
     output wire f
 );
-  assign f = (a & ~sel) | (b & sel);
+    assign f = (a & ~sel) | (b & sel);
 endmodule

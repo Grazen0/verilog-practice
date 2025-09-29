@@ -5,6 +5,6 @@ module adder (
     output wire s,
     output wire c_out
 );
-  assign s = a ^ b ^ c_in;
-  assign c_out = (a & b) | (a & c_in) | (b & c_in);
+    assign s = a ^ b ^ c_in;
+    assign c_out = (a & b) | (a & c_in) | (b & c_in);
 endmodule
