@@ -1,9 +1,9 @@
-module shifter_tb ();
+module shift_register_tb ();
   reg clk, rst, load;
   reg  [7:0] data;
   wire [7:0] out;
 
-  shifter s1 (
+  shift_register s1 (
       .clk  (clk),
       .rst_n(rst),
       .load (load),
@@ -14,7 +14,7 @@ module shifter_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    $dumpvars(0, shifter_tb);
+    $dumpvars(0, shift_register_tb);
 
     clk  = 0;
     rst  = 1;

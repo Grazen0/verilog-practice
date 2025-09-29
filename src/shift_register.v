@@ -1,4 +1,4 @@
-module shifter (
+module shift_register (
     input wire clk,
     input wire rst_n,
     input wire load,
