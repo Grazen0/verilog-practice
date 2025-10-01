@@ -3,7 +3,9 @@
 }:
 pkgs.mkShell {
   packages = with pkgs; [
-    iverilog
     gtkwave
+    hexedit
+    iverilog
+    xxd
   ];
 }
