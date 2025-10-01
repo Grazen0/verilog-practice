@@ -1,5 +1,76 @@
 `define HALF_PERIOD(clk, freq) ((clk) / (2 * (freq)))
 
+module auto_reload_timer #(
+    parameter WIDTH = 16
+) (
+    input wire clk,
+    input wire rst_n,
+    input wire [WIDTH-1:0] load_value,
+    input wire reload,
+    output wire done
+);
+  reg [WIDTH-1:0] counter;
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      counter <= 1;
+    end else if (counter == 1 || reload) begin
+      counter <= load_value;
+    end else begin
+      counter <= counter - 1;
+    end
+  end
+
+  assign done = (counter == 1);
+endmodule
+
+module speaker_driver #(
+    parameter TIMER_WIDTH = 16
+) (
+    input wire clk,
+    input wire rst_n,
+    input wire [TIMER_WIDTH-1:0] half_period,
+    output reg speaker
+);
+  wire toggle;
+
+  auto_reload_timer #(
+      .WIDTH(TIMER_WIDTH)
+  ) timer (
+      .clk(clk),
+      .rst_n(rst_n),
+      .reload(0),
+      .load_value(half_period),
+      .done(toggle)
+  );
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      speaker <= 0;
+    end else if (toggle) begin
+      speaker <= ~speaker;
+    end
+  end
+endmodule
+
+module control_unit (
+    input wire clk,
+    input wire rst_n,
+    output reg [12:0] half_period
+);
+  reg [31:0] note_counter;
+
+  wire note_done;
+
+  auto_reload_timer t (
+      .clk(clk),
+      .rst_n(rst_n),
+      .load_value(8),
+      .reload(0),
+      .done(note_done)
+  );
+endmodule
+
 module music (
     input  wire clk,
     input  wire rst_n,
@@ -25,10 +96,10 @@ module music (
     localparam DO_H_SH = `HALF_PERIOD(CLK_FREQ, 554);
     localparam RE_H = `HALF_PERIOD(CLK_FREQ, 587);
 
-    reg [ 3:0] step;
-    reg [31:0] beat_timer;
-    reg [31:0] speaker_timer;
-    reg [31:0] speaker_half_period, next_half_period;
+  reg [ 3:0] step;
+  reg [31:0] beat_timer;
+  reg [31:0] speaker_timer;
+  reg [15:0] speaker_half_period, next_half_period;
 
     always @(*) begin
         case (step)
