@@ -2,7 +2,7 @@
 
 module auto_reload_timer_tb ();
     localparam WIDTH = 8;
-    reg clk, rst_n, reload;
+    reg clk, rst_n;
     reg [WIDTH-1:0] load_value;
     wire done;
 
@@ -14,7 +14,6 @@ module auto_reload_timer_tb ();
         .clk(clk),
         .rst_n(rst_n),
         .load_value(load_value),
-        .reload(reload),
         .done(done)
     );
 
@@ -23,19 +22,10 @@ module auto_reload_timer_tb ();
 
         clk = 0;
         rst_n = 0;
-        reload = 0;
         load_value = 3;
 
         #1 rst_n = 1;
-
-        #50 reload = 1;
-        #10 reload = 0;
-
         #60 load_value = 5;
-
-        #30 reload = 1;
-        #10 reload = 0;
-
         #100 $finish();
     end
 endmodule
