@@ -7,9 +7,13 @@ TBS = $(shell find $(TB_DIR) -name '*.v')
 
 TARGETS := $(patsubst $(TB_DIR)/%.v,$(BUILD_DIR)/%,$(TBS))
 
+INC_DIRS := ./include
+
+IVERILOG_FLAGS := $(addprefix -I,$(INC_DIRS))
+
 $(BUILD_DIR)/%: $(TB_DIR)/%.v $(SRCS)
 	mkdir -p $(dir $@)
-	iverilog -o $@ $< $(SRCS) 
+	iverilog $(IVERILOG_FLAGS) -o $@ $< $(SRCS) 
 
 all: $(TARGETS)
 
