@@ -62,7 +62,11 @@ module control_unit #(
       note_buf <= rom_data;
       inc_nc   <= 1;
     end else if (inc_nc) begin
-      note_counter <= note_counter + 1;
+      if (note_counter == ROM_SIZE - 1) begin
+        note_counter <= 0;
+      end else begin
+        note_counter <= note_counter + 1;
+      end
       inc_nc <= 0;
     end
   end
