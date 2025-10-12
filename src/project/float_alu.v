@@ -124,45 +124,42 @@ module fp_normalize #(
 );
   reg busy;
   reg [P+3:0] mant_reg;
-  reg [7:9] exp_reg;
+  reg [7:0] exp_reg;
 
   assign ready_in = !busy;
 
   reg [P+3:0] mant_next;
   reg [7:0] exp_next;
-  reg mant_ready;
+  reg mant_ready_next;
 
   always @(*) begin
-    mant_next  = mant_reg << 1;
-    exp_next   = exp_reg - 1;
-    mant_ready = mant_next[P+3];
+    mant_next = (valid_in && ready_in) ? mant_in : valid_out ? mant_reg : (mant_reg << 1);
+    exp_next = (valid_in && ready_in) ? exp_in : valid_out ? exp_reg : (exp_reg - 1);
+    mant_ready_next = mant_next[P+3];
   end
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      busy <= 1'b0;
+      ready_in  <= 1'b1;
       valid_out <= 1'b0;
-      mant_reg <= {(P + 4) {1'b0}};
-      exp_reg <= 8'b0;
-      mant_out <= {(P + 4) {1'b0}};
-      exp_out <= 8'b0;
+      mant_reg  <= {(P + 4) {1'b0}};
+      exp_reg   <= 8'b0;
+      mant_out  <= {(P + 4) {1'b0}};
+      exp_out   <= 8'b0;
     end else begin
-      if (valid_in && ready_in) begin
-        mant_reg <= mant_in;
-        exp_reg <= exp_in;
-        busy <= 1'b1;
-      end
-
       mant_reg <= mant_next;
       exp_reg  <= exp_next;
 
-      if (mant_ready) begin
-        mant_out <= mant_next;
-        exp_out <= exp_next;
-        valid_out <= 1'b1;
-        busy <= 1'b0;
+      if (valid_in && ready_in) begin
+        ready_in <= 1'b0;
       end
 
+      if (mant_ready_next) begin
+        mant_out  <= mant_next;
+        exp_out   <= exp_next;
+        valid_out <= 1'b1;
+        ready_in  <= 1'b1;
+      end
 
       if (valid_out && ready_out) begin
         valid_out <= 1'b0;
@@ -186,30 +183,6 @@ module float_alu #(
     output wire valid_out,
     output wire [4:0] flags
 );
-  // reg [31:0] op_a_latch, op_b_latch;
-  // reg round_mode_latch, mode_fp_latch;
-
-  // always @(posedge clk or negedge rst_n) begin
-  //   if (!rst_n) begin
-  //     op_a_latch <= 0;
-  //     op_b_latch <= 0;
-  //     round_mode_latch <= 0;
-  //   end else if (start) begin
-  //     op_a_latch <= op_a;
-  //     op_b_latch <= op_b;
-  //     round_mode_latch <= round_mode;
-  //     mode_fp_latch <= mode_fp;
-  //   end
-  // end
-
-  // fp_adder_control control (
-  //     .clk(clk),
-  //     .rst_n(rst_n),
-  //     .start(start),
-  //     .align_start(align_start),
-  //     .align_done(align_done)
-  // );
-
   wire sign_a = op_a[31];
   wire sign_b = op_b[31];
 
@@ -263,7 +236,7 @@ module float_alu #(
       .valid_in (normalize_valid),
       .ready_in (normalize_ready),
       .valid_out(round_valid),
-      .ready_out(round_ready)
+      .ready_out(1)
   );
 
 
@@ -286,7 +259,7 @@ module float_alu #(
   //     norm_mant = sum;
   //   end
   // end
-  //
+
   // // Rounding
   // wire rr = norm_mant[3];
   // wire m0 = norm_mant[2];

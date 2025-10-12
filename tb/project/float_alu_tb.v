@@ -45,6 +45,6 @@ module float_alu_tb ();
 
     #10;
 
-    #200 $finish();
+    #50 $finish();
   end
 endmodule
