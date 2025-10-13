@@ -3,68 +3,64 @@ module fp_align #(
 ) (
     input wire clk,
     input wire rst_n,
+
+    input wire valid_in,
+    input wire ready_out,
     input wire [P-1:0] mant_a,
     input wire [7:0] exp_a,
     input wire [P-1:0] mant_b,
     input wire [7:0] exp_b,
-    input wire valid_in,
+
     output reg valid_out,
+    output wire ready_in,
     output reg [P+3:0] mant_a_aligned,
     output reg [P+3:0] mant_b_aligned,
     output reg [7:0] bigger_exp
 );
+  assign ready_in = ready_out;
+
   reg [P+3:0] mant_a_aligned_next, mant_b_aligned_next;
   reg [7:0] bigger_exp_next;
 
   reg [7:0] shamt;
-  reg shift_select;
 
   wire signed [8:0] exp_diff = exp_a - exp_b;
   wire [P:0] mant_a_full = (exp_a == 0) ? {1'b0, mant_a} : {1'b1, mant_a};
   wire [P:0] mant_b_full = (exp_b == 0) ? {1'b0, mant_b} : {1'b1, mant_b};
 
   always @(*) begin
-    mant_a_aligned_next = {{(P + 4) {1'b0}}};
-    mant_b_aligned_next = {{(P + 4) {1'b0}}};
-    bigger_exp_next = 8'd0;
-    shift_select = 1'b0;
-    shamt = 8'd0;
-
-    if (exp_diff >= 0) begin
-      shift_select = 1'b1;  // a >= b
-      shamt = exp_diff[7:0];
+    if (!ready_out) begin
+      bigger_exp_next = bigger_exp;
+      mant_a_aligned_next = mant_a_aligned;
+      mant_b_aligned_next = mant_b_aligned;
     end else begin
-      shift_select = 1'b0;  // a < b
-      shamt = -exp_diff[7:0];
-    end
-
-    if (shift_select) begin
-      // Shift B
-      bigger_exp_next = exp_a;
-      mant_a_aligned_next = {mant_a_full, 3'b000};
-      mant_b_aligned_next = {mant_b_full, 3'b000} >> shamt;
-    end else begin
-      // Shift A
-      bigger_exp_next = exp_b;
-      mant_a_aligned_next = {mant_a_full, 3'b000} >> shamt;
-      mant_b_aligned_next = {mant_b_full, 3'b000};
+      if (exp_diff >= 0) begin
+        // a >= b
+        bigger_exp_next = exp_a;
+        mant_a_aligned_next = {mant_a_full, 3'b000};
+        mant_b_aligned_next = {mant_b_full, 3'b000} >> exp_diff[7:0];
+      end else begin
+        // a < b
+        bigger_exp_next = exp_b;
+        mant_a_aligned_next = {mant_a_full, 3'b000} >> -exp_diff[7:0];
+        mant_b_aligned_next = {mant_b_full, 3'b000};
+      end
     end
   end
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      valid_out      <= 1'b0;
       mant_a_aligned <= {(P + 4) {1'b0}};
       mant_b_aligned <= {(P + 4) {1'b0}};
       bigger_exp     <= 8'b0;
-    end else begin
-      valid_out <= valid_in;
 
-      if (valid_in) begin
-        mant_a_aligned <= mant_a_aligned_next;
-        mant_b_aligned <= mant_b_aligned_next;
-        bigger_exp <= bigger_exp_next;
-      end
+      valid_out      <= 1'b0;
+    end else begin
+      mant_a_aligned <= mant_a_aligned_next;
+      mant_b_aligned <= mant_b_aligned_next;
+      bigger_exp <= bigger_exp_next;
+
+      valid_out <= !ready_out ? valid_out : valid_in;
     end
   end
 endmodule
@@ -74,34 +70,41 @@ module fp_addsub #(
 ) (
     input wire clk,
     input wire rst_n,
-    input wire [P+3:0] mant_a_aligned,
-    input wire [P+3:0] mant_b_aligned,
+
     input wire valid_in,
     input wire ready_out,
+    input wire [P+3:0] mant_a_aligned,
+    input wire [P+3:0] mant_b_aligned,
+
     output reg valid_out,
+    output wire ready_in,
     output reg [P+3:0] sum,
     output reg carry
 );
+  assign ready_in = ready_out;
+
   reg [P+3:0] sum_next;
   reg carry_next;
 
   always @(*) begin
-    {carry_next, sum_next} <= mant_a_aligned + mant_b_aligned;
+    if (valid_in && ready_in) begin
+      {carry_next, sum_next} = mant_a_aligned + mant_b_aligned;
+    end else begin
+      {carry_next, sum_next} = {carry, sum};
+    end
   end
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
       sum       <= {(P + 3) {1'b0}};
       carry     <= 1'b0;
+
       valid_out <= 1'b0;
     end else begin
-      if (ready_out) begin
-        valid_out <= valid_in;
-        if (valid_in) begin
-          sum   <= sum_next;
-          carry <= carry_next;
-        end
-      end
+      sum <= sum_next;
+      carry <= carry_next;
+
+      valid_out <= !ready_out ? valid_out : valid_in;
     end
   end
 endmodule
@@ -113,57 +116,41 @@ module fp_normalize #(
     input wire rst_n,
 
     input wire valid_in,
-    output wire ready_in,
+    input wire ready_out,
     input wire [P+3:0] mant_in,
     input wire [7:0] exp_in,
 
     output reg valid_out,
-    input wire ready_out,
+    output wire ready_in,
     output reg [P+3:0] mant_out,
     output reg [7:0] exp_out
 );
   reg busy;
-  reg [P+3:0] mant_reg;
-  reg [7:0] exp_reg;
-
-  assign ready_in = !busy;
 
   reg [P+3:0] mant_next;
   reg [7:0] exp_next;
-  reg mant_ready_next;
+  reg valid_out_next;
+
+  // TODO: this stays at 0. Need to modify the condition.
+  assign ready_in = (valid_out && ready_out);
 
   always @(*) begin
-    mant_next = (valid_in && ready_in) ? mant_in : valid_out ? mant_reg : (mant_reg << 1);
-    exp_next = (valid_in && ready_in) ? exp_in : valid_out ? exp_reg : (exp_reg - 1);
-    mant_ready_next = mant_next[P+3];
+    mant_next = (valid_in && ready_in) ? mant_in : valid_out ? mant_out : (mant_out << 1);
+    exp_next = (valid_in && ready_in) ? exp_in : valid_out ? exp_out : (exp_out - 1);
+    valid_out_next = mant_next[P+3];
   end
 
   always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
-      ready_in  <= 1'b1;
-      valid_out <= 1'b0;
-      mant_reg  <= {(P + 4) {1'b0}};
-      exp_reg   <= 8'b0;
       mant_out  <= {(P + 4) {1'b0}};
       exp_out   <= 8'b0;
+
+      valid_out <= 1'b0;
     end else begin
-      mant_reg <= mant_next;
-      exp_reg  <= exp_next;
+      mant_out  <= mant_next;
+      exp_out   <= exp_next;
 
-      if (valid_in && ready_in) begin
-        ready_in <= 1'b0;
-      end
-
-      if (mant_ready_next) begin
-        mant_out  <= mant_next;
-        exp_out   <= exp_next;
-        valid_out <= 1'b1;
-        ready_in  <= 1'b1;
-      end
-
-      if (valid_out && ready_out) begin
-        valid_out <= 1'b0;
-      end
+      valid_out <= valid_out_next;
     end
   end
 endmodule
@@ -192,22 +179,26 @@ module float_alu #(
   wire [P-1:0] mant_a = op_a[P-1:0];
   wire [P-1:0] mant_b = op_b[P-1:0];
 
-  wire addsub_valid;
+  wire align_valid, align_ready;
   wire [P+3:0] mant_a_aligned, mant_b_aligned;
   wire [7:0] bigger_exp;
 
   fp_align align (
-      .clk(clk),
+      .clk  (clk),
       .rst_n(rst_n),
+
       .valid_in(start),
+      .ready_out(addsub_ready),
       .mant_a(mant_a),
       .exp_a(exp_a),
       .mant_b(mant_b),
       .exp_b(exp_b),
+
+      .valid_out(align_valid),
+      .ready_in(align_ready),
       .mant_a_aligned(mant_a_aligned),
       .mant_b_aligned(mant_b_aligned),
-      .bigger_exp(bigger_exp),
-      .valid_out(addsub_valid)
+      .bigger_exp(bigger_exp)
   );
 
   wire [P+3:0] sum;
@@ -215,28 +206,36 @@ module float_alu #(
   wire normalize_valid, normalize_ready;
 
   fp_addsub addsub (
-      .clk(clk),
+      .clk  (clk),
       .rst_n(rst_n),
+
+      .valid_in(align_valid),
+      .ready_out(normalize_ready),
       .mant_a_aligned(mant_a_aligned),
       .mant_b_aligned(mant_b_aligned),
-      .valid_in(addsub_valid),
+
       .valid_out(normalize_valid),
-      .ready_out(normalize_ready),
+      .ready_in(addsub_ready),
       .sum(sum),
       .carry(carry)
   );
+
+  wire [P+3:0] mant_normalized;
+  wire [  7:0] exp_normalized;
 
   fp_normalize normalize (
       .clk  (clk),
       .rst_n(rst_n),
 
+      .valid_in(normalize_valid),
+      .ready_out(1'b1),
       .mant_in(sum),
-      .exp_in (bigger_exp),
+      .exp_in(bigger_exp),
 
-      .valid_in (normalize_valid),
       .ready_in (normalize_ready),
       .valid_out(round_valid),
-      .ready_out(1)
+      .mant_out (mant_normalized),
+      .exp_out  (exp_normalized)
   );
 
 
