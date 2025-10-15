@@ -32,8 +32,8 @@ module fp_align #(
   reg sign_a_aligned_next, sign_b_aligned_next, round_mode_out_next;
 
   wire signed [8:0] exp_diff = exp_a - exp_b;
-  wire [P:0] mant_a_full = (exp_a == 0) ? {1'b0, mant_a} : {1'b1, mant_a};
-  wire [P:0] mant_b_full = (exp_b == 0) ? {1'b0, mant_b} : {1'b1, mant_b};
+  wire [P:0] mant_a_full = exp_a == 0 ? {1'b0, mant_a} : {1'b1, mant_a};
+  wire [P:0] mant_b_full = exp_b == 0 ? {1'b0, mant_b} : {1'b1, mant_b};
 
   always @(*) begin
     if (valid_in && ready_in) begin
@@ -221,22 +221,34 @@ module fp_normalize #(
       round_mode_out_next = round_mode_in;
 
       if (carry) begin
-        mant_next = {1'b1, mant_in[P+3:1]};
-        exp_next  = exp_in + 1;
+        if (exp_in == 8'hFF) begin
+          // Infinity
+          mant_next = mant_in;
+          exp_next  = exp_in;
+        end else begin
+          mant_next = {1'b1, mant_in[P+3:1]};
+          exp_next  = exp_in + 1;
+        end
       end else begin
         mant_next = mant_in;
         exp_next  = exp_in;
       end
     end else begin
       // Work with current data
-      mant_next = valid_out ? mant_out : mant_out << 1;
-      exp_next = valid_out ? exp_out : exp_out - 1;
+      if (valid_out || exp_out == 0) begin
+        mant_next = mant_out;
+        exp_next  = exp_out;
+      end else begin
+        mant_next = mant_out << 1;
+        exp_next  = exp_out - 1;
+      end
 
       sign_out_next = sign_out;
       round_mode_out_next = round_mode_out;
     end
 
-    valid_out_next = mant_next[P+3];
+    valid_out_next = (busy || (valid_in && ready_in))
+    && (mant_next == 0 || mant_next[P+3] || exp_out == 0 || exp_out == 8'hFF);
     busy_next = (busy || (valid_in && ready_in)) && !valid_out_next;
   end
 
